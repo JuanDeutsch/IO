@@ -1,6 +1,19 @@
 import sys
 import os
 
+#A-->Empresa Inicial
+A=1
+B=2
+#FORD-->1
+#NIO-->2
+#TOYOTA-->3
+#HONDA--4
+
+enterprise_dic={1:"Ford",2:"NIO",3:"Toyota",4:"Honda"}
+A=enterprise_dic[A]
+B=enterprise_dic[B]
+
+
 current_dir=os.getcwd()
 is_ipynb=False
 try:
@@ -13,29 +26,31 @@ except ImportError as e:
     from MARKOVIANAS import Markov_Model
     is_ipynb=True
 
+#Establece Diccionario con todas las desviaciones y matrices de transición
 ford_matrix,ford_last_stdv = Markov_Model.sendInfoToAnalize("Ford3",is_ipynb)
 NIO_matrix,NIO_last_stdv = Markov_Model.sendInfoToAnalize("NIO3",is_ipynb)
+toyota_matrix,toyota_last_stdv = Markov_Model.sendInfoToAnalize("Toyota3",is_ipynb)
+honda_matrix,honda_last_stdv = Markov_Model.sendInfoToAnalize("Honda3",is_ipynb)
+
+enterprise_transition_matrix={"Ford":ford_matrix,
+                              "NIO":NIO_matrix,
+                              "Toyota":toyota_matrix,
+                              "Honda":honda_matrix}
+enterprise_last_stdv={"Ford":ford_last_stdv,
+                      "NIO":NIO_last_stdv,
+                      "Toyota":toyota_last_stdv,
+                      "Honda":honda_last_stdv}
 
 
-#S1-Día de la Inversión (0,1,2....)
-#S2-Dinero de la inversión en el día S1 (100,101,102...)
-#S3-Empresa en la que esta la inversión en el día S1 (Ford,Nio)
-
-# Bajar = 0 ; Subir = 1
-
-def Starting_State():    
+def Starting_State():  
     s1=1
-    s2="Ford"
+    s2=A
     s3=100
     s4 = 100
     s5 = 1
     s6 = 1
     s=(s1,s2,s3,s4,s5,s6)
     return s
-
-#Si el dinero llega a 0, no puedo invertir
-#Si la acción subio el día anterior, se mantiene
-#Si la acción bajo el día anterior, se cambia
 
 def Action_Set(s):
     (s1,s2,s3,s4,s5,s6)=s  
@@ -53,20 +68,20 @@ def Event_Set(s,a):
 def Transition_Equations(s,a,e):
     (s1,s2,s3,s4,s5,s6)=s   
     sn1=s1+1
-    if ((a == 'Mantengo' and s2 == 'Ford') or (a=='Cambio' and s2 == 'Nio')):
-        sn2 = "Ford"
-    elif ((a == 'Mantengo' and s2 == 'Nio') or (a=='Cambio' and s2 == 'Ford')):
-        sn2 = "Nio"
+    if ((a == 'Mantengo' and s2 == A) or (a=='Cambio' and s2 == B)):
+        sn2 = A
+    elif ((a == 'Mantengo' and s2 == B) or (a=='Cambio' and s2 == A)):
+        sn2 = B
     
     if (e == (1,0) or e == (1,1)):
-        sn3 = s3 * (1 + ford_last_stdv)
+        sn3 = s3 * (1 + enterprise_last_stdv[A])
     elif (e == (0,0) or e == (0,1)):
-        sn3 = s3 * (1 - ford_last_stdv)
+        sn3 = s3 * (1 - enterprise_last_stdv[A])
 
     if (e == (0,1) or e == (1,1)):
-        sn4 = s4 * (1 + NIO_last_stdv)
+        sn4 = s4 * (1 + enterprise_last_stdv[B])
     elif (e == (0,0) or e == (1,0)):
-        sn4 = s4 * (1 - NIO_last_stdv)
+        sn4 = s4 * (1 - enterprise_last_stdv[B])
     
     if (e == (1,0) or e == (1,1)):
         sn5 = 1
@@ -90,28 +105,28 @@ def Constraints(s,a,sn,L):
 def Transition_Probabilities(s,a,e):
     (s1,s2,s3,s4,s5,s6)=s
     if e == (1,1):
-        p = ford_matrix[1][s5] * NIO_matrix[1][s6]
+        p = enterprise_transition_matrix[A][1][s5] * enterprise_transition_matrix[B][1][s6]
     elif e == (1,0):    
-        p = ford_matrix[1][s5] * NIO_matrix[0][s6]
+        p = enterprise_transition_matrix[A][1][s5] * enterprise_transition_matrix[B][0][s6]
     elif e == (0,1):
-        p = ford_matrix[0][s5] * NIO_matrix[1][s6]
+        p = enterprise_transition_matrix[A][0][s5] * enterprise_transition_matrix[B][1][s6]
     elif e == (0,0):
-        p = ford_matrix[0][s5] * NIO_matrix[0][s6] 
+        p = enterprise_transition_matrix[A][0][s5] * enterprise_transition_matrix[B][0][s6] 
     return p
     
 def Action_Contribution(s,a):
     (s1,s2,s3,s4,s5,s6)=s
     if a=="Mantengo": ca=0
-    if a=="Cambio" and s2 == 'Ford': ca=s3*0.01
-    if a=="Cambio" and s2 == 'Nio': ca=s4*0.01
+    if a=="Cambio" and s2 == A: ca=s3*0.01
+    if a=="Cambio" and s2 == B: ca=s4*0.01
     return ca
 
 def Event_Contribution(s,a,e):
     (s1,s2,s3,s4,s5,s6)=s
-    if ((e == (1,0) or e == (1,1)) and s2 == 'Ford'): ce=s3*ford_last_stdv
-    if ((e == (0,0) or e == (0,1)) and s2 == 'Ford'): ce=-s3*ford_last_stdv
-    if ((e == (0,1) or e == (1,1)) and s2 == 'Nio'): ce=s4*NIO_last_stdv
-    if ((e == (0,0) or e == (1,0)) and s2 == 'Nio'): ce=-s4*NIO_last_stdv
+    if ((e == (1,0) or e == (1,1)) and s2 == A): ce=s3*enterprise_last_stdv[A]
+    if ((e == (0,0) or e == (0,1)) and s2 == A): ce=-s3*enterprise_last_stdv[A]
+    if ((e == (0,1) or e == (1,1)) and s2 == B): ce=s4*enterprise_last_stdv[B]
+    if ((e == (0,0) or e == (1,0)) and s2 == B): ce=-s4*enterprise_last_stdv[B]
     return ce
 
 def Quality_Function(m,p,ca,ce,V_sn):
