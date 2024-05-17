@@ -36,10 +36,11 @@ enterprise_transition_matrix={"Ford":ford_matrix,
                               "NIO":NIO_matrix,
                               "Toyota":toyota_matrix,
                               "Honda":honda_matrix}
-enterprise_last_stdv={"Ford":ford_last_stdv,
-                      "NIO":NIO_last_stdv,
-                      "Toyota":toyota_last_stdv,
-                      "Honda":honda_last_stdv}
+enterprise_last_stdv={"Ford":round(ford_last_stdv,4),
+                      "NIO":round(NIO_last_stdv,4),
+                      "Toyota":round(toyota_last_stdv,4),
+                      "Honda":round(honda_last_stdv,4)}
+
 
 
 def Starting_State():  
@@ -74,14 +75,14 @@ def Transition_Equations(s,a,e):
         sn2 = B
     
     if (e == (1,0) or e == (1,1)):
-        sn3 = s3 * (1 + enterprise_last_stdv[A])
+        sn3 = round(s3 * (1 + enterprise_last_stdv[A]),4)
     elif (e == (0,0) or e == (0,1)):
-        sn3 = s3 * (1 - enterprise_last_stdv[A])
+        sn3 = round(s3 * (1 - enterprise_last_stdv[A]),4)
 
     if (e == (0,1) or e == (1,1)):
-        sn4 = s4 * (1 + enterprise_last_stdv[B])
+        sn4 = round(s4 * (1 + enterprise_last_stdv[B]),4)
     elif (e == (0,0) or e == (1,0)):
-        sn4 = s4 * (1 - enterprise_last_stdv[B])
+        sn4 = round(s4 * (1 - enterprise_last_stdv[B]),4)
     
     if (e == (1,0) or e == (1,1)):
         sn5 = 1
@@ -105,20 +106,20 @@ def Constraints(s,a,sn,L):
 def Transition_Probabilities(s,a,e):
     (s1,s2,s3,s4,s5,s6)=s
     if e == (1,1):
-        p = enterprise_transition_matrix[A][1][s5] * enterprise_transition_matrix[B][1][s6]
+        p = enterprise_transition_matrix[A][s5][1] * enterprise_transition_matrix[B][s6][1]
     elif e == (1,0):    
-        p = enterprise_transition_matrix[A][1][s5] * enterprise_transition_matrix[B][0][s6]
+        p = enterprise_transition_matrix[A][s5][1] * enterprise_transition_matrix[B][s6][0]
     elif e == (0,1):
-        p = enterprise_transition_matrix[A][0][s5] * enterprise_transition_matrix[B][1][s6]
+        p = enterprise_transition_matrix[A][s5][0] * enterprise_transition_matrix[B][s6][1]
     elif e == (0,0):
-        p = enterprise_transition_matrix[A][0][s5] * enterprise_transition_matrix[B][0][s6] 
+        p = enterprise_transition_matrix[A][s5][0] * enterprise_transition_matrix[B][s6][0]
     return p
     
 def Action_Contribution(s,a):
     (s1,s2,s3,s4,s5,s6)=s
     if a=="Mantengo": ca=0
-    if a=="Cambio" and s2 == A: ca=s3*0.01
-    if a=="Cambio" and s2 == B: ca=s4*0.01
+    if a=="Cambio" and s2 == A: ca=-s3*0.01
+    if a=="Cambio" and s2 == B: ca=-s4*0.01
     return ca
 
 def Event_Contribution(s,a,e):
@@ -137,6 +138,9 @@ def Optimal_Value_Function(Q_s_a):
     V_s=max(Q_s_a)
     return V_s
 
-def Boundary_Condition(s):    
-    V_s=0
+def Boundary_Condition(s):      
+    (s1,s2,s3,s4,s5,s6)=s
+    if s1 >= 4 and s2 == A: V_s= s3
+    elif s1 >= 4 and s2 == B: V_s= s4
+    else: V_s=0
     return V_s
