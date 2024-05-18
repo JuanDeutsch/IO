@@ -13,24 +13,21 @@ enterprise_dic={1:"Ford",2:"NIO",3:"Toyota",4:"Honda"}
 A=enterprise_dic[A]
 B=enterprise_dic[B]
 
+ford_matrix=[[0.50519751, 0.49480249],
+             [0.49170124, 0.50829876]]
+ford_last_stdv=0.0239
 
-current_dir=os.getcwd()
-is_ipynb=False
-try:
-    sys.path.append(f'{current_dir}\ENTREGA3')
-    from MARKOVIANAS import Markov_Model
-    is_ipynb=False
-except ImportError as e:
-    parent_dir = os.path.dirname(os.path.dirname(current_dir))
-    sys.path.append(f'{parent_dir}\ENTREGA3')
-    from MARKOVIANAS import Markov_Model
-    is_ipynb=True
+NIO_matrix=[[0.51297405, 0.48702595],
+            [0.52597403, 0.47402597]]
+NIO_last_stdv=0.046
 
-#Establece Diccionario con todas las desviaciones y matrices de transición
-ford_matrix,ford_last_stdv = Markov_Model.sendInfoToAnalize("Ford3",is_ipynb)
-NIO_matrix,NIO_last_stdv = Markov_Model.sendInfoToAnalize("NIO3",is_ipynb)
-toyota_matrix,toyota_last_stdv = Markov_Model.sendInfoToAnalize("Toyota3",is_ipynb)
-honda_matrix,honda_last_stdv = Markov_Model.sendInfoToAnalize("Honda3",is_ipynb)
+toyota_matrix=[[0.45575221, 0.54424779],
+               [0.47945205, 0.52054795]]
+toyota_last_stdv=0.0193
+
+honda_matrix=[[0.46521739, 0.53478261],
+              [0.48707753, 0.51292247]]
+honda_last_stdv=0.0122
 
 enterprise_transition_matrix={"Ford":ford_matrix,
                               "NIO":NIO_matrix,
@@ -41,9 +38,6 @@ enterprise_last_stdv={"Ford":round(ford_last_stdv,4),
                       "Toyota":round(toyota_last_stdv,4),
                       "Honda":round(honda_last_stdv,4)}
 
-#Código para obtener todas las matrices y desviaciones y hacerlas estáticas
-"""for i,empresa in enumerate(enterprise_last_stdv.keys()):
-    print(f'{empresa}:\nMatriz:\n{enterprise_transition_matrix[empresa]}\nDesviacion:\n{enterprise_last_stdv[empresa]}')"""
 
 
 def Starting_State():  
